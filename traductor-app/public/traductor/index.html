@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Traductor de Algoritmos</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0" rel="stylesheet" />
+
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-theme="light">
+
+<!-- Acceso -->
+<div id="loginOverlay">
+  <div class="login-card" id="loginCard">
+    <div class="login-mark">
+      <span class="material-symbols-outlined">terminal</span>
+    </div>
+
+    <h1 class="login-title">Traductor de Algoritmos</h1>
+    <p class="login-subtitle">Analizador de pseudocodigo con traduccion a JavaScript</p>
+
+    <form id="loginForm" autocomplete="off">
+      <label class="field">
+        <span class="field-label">Usuario</span>
+        <span class="field-control">
+          <span class="material-symbols-outlined field-icon">person</span>
+          <input type="text" id="loginUser" autocomplete="off" required />
+        </span>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Contrasena</span>
+        <span class="field-control">
+          <span class="material-symbols-outlined field-icon">lock</span>
+          <input type="password" id="loginPass" autocomplete="off" required />
+        </span>
+      </label>
+
+      <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+        <span class="material-symbols-outlined">login</span>
+        <span class="label">Iniciar sesion</span>
+      </button>
+    </form>
+
+    <p class="login-error" id="loginError">Usuario o contrasena incorrectos</p>
+
+    <p class="login-footer">Lenguajes y Automatas &middot; Proyecto academico</p>
+  </div>
+</div>
+
+<!-- Aplicacion -->
+<div id="appContent">
+
+<header class="app-header">
+  <div class="brand">
+    <span class="material-symbols-outlined brand-mark">terminal</span>
+    <div>
+      <h1>Traductor de Algoritmos</h1>
+      <p class="subtitle">Lexico &rarr; Sintactico &rarr; Semantico &rarr; Traduccion &rarr; Ejecucion</p>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <label class="btn btn-ghost" title="Cargar un archivo .alg o .txt">
+      <span class="material-symbols-outlined">folder_open</span>
+      <span class="label">Cargar</span>
+      <input id="fileIn" type="file" accept=".alg,.txt" hidden />
+    </label>
+
+    <button id="saveBtn" class="btn btn-ghost" title="Descargar el pseudocodigo como archivo .alg">
+      <span class="material-symbols-outlined">download</span>
+      <span class="label">Descargar</span>
+    </button>
+
+    <button id="resetBtn" class="btn btn-ghost" title="Vaciar el editor y los paneles">
+      <span class="material-symbols-outlined">restart_alt</span>
+      <span class="label">Limpiar</span>
+    </button>
+
+    <button id="themeToggle" class="btn btn-icon" title="Cambiar tema" aria-label="Cambiar tema">
+      <span class="material-symbols-outlined icon-light">dark_mode</span>
+      <span class="material-symbols-outlined icon-dark">light_mode</span>
+    </button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- Columna izquierda -->
+  <section class="column">
+
+    <article class="panel">
+      <div class="panel-head">
+        <h2><span class="material-symbols-outlined">edit_note</span>Editor de pseudocodigo</h2>
+        <span class="badge" id="stats">Lineas: 0</span>
+      </div>
+      <div class="panel-body">
+        <textarea id="inputCode" spellcheck="false" placeholder="INICIO;
+LEER A, B;
+C = A + B;
+SI C > 10 ENTONCES
+  ESCRIBIR C;
+SINO
+  ESCRIBIR 0;
+FIN_SI;
+FIN;"></textarea>
+
+        <div class="actions">
+          <button id="runBtn" class="btn btn-primary" onclick="runAll()">
+            <span class="material-symbols-outlined">bolt</span>
+            <span class="label">Analizar y traducir</span>
+          </button>
+          <button id="lexBtn" class="btn" onclick="analizarLexico()">
+            <span class="material-symbols-outlined">search</span>
+            <span class="label">Lexico</span>
+          </button>
+          <button id="astBtn" class="btn" onclick="parseAndBuildAST()">
+            <span class="material-symbols-outlined">account_tree</span>
+            <span class="label">Sintactico</span>
+          </button>
+          <button id="semBtn" class="btn" onclick="semanticCheck()">
+            <span class="material-symbols-outlined">rule</span>
+            <span class="label">Semantico</span>
+          </button>
+          <button id="transBtn" class="btn" onclick="translateToJS()">
+            <span class="material-symbols-outlined">code</span>
+            <span class="label">Traducir</span>
+          </button>
+          <button id="execBtn" class="btn btn-accent" onclick="executeTranslated()">
+            <span class="material-symbols-outlined">play_arrow</span>
+            <span class="label">Ejecutar</span>
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel" id="panelHistorial">
+      <div class="panel-head">
+        <h2><span class="material-symbols-outlined">history</span>Mis programas</h2>
+        <button class="btn btn-icon" onclick="cargarHistorial()" title="Actualizar lista" aria-label="Actualizar">
+          <span class="material-symbols-outlined">refresh</span>
+        </button>
+      </div>
+      <div class="panel-body">
+        <div class="fila-guardar">
+          <input id="tituloPrograma" type="text" maxlength="150" placeholder="Titulo del programa" />
+          <button id="btnGuardarBase" class="btn btn-primary" onclick="guardarEnBase()">
+            <span class="material-symbols-outlined">cloud_upload</span>
+            <span class="label">Guardar</span>
+          </button>
+        </div>
+        <p id="avisoHistorial" class="aviso"></p>
+        <div id="listaProgramas" class="scroll lista">
+          <p class="empty">Aun no has guardado programas.</p>
+        </div>
+      </div>
+    </article>
+
+    <div class="split">
+      <article class="panel" id="tokenTable">
+        <div class="panel-head">
+          <h2><span class="material-symbols-outlined">format_list_numbered</span>Tokens</h2>
+        </div>
+        <div class="panel-body scroll" id="tokensInner">
+          <p class="empty">Sin tokens.</p>
+        </div>
+      </article>
+
+      <article class="panel" id="errors">
+        <div class="panel-head">
+          <h2><span class="material-symbols-outlined">report</span>Errores y mensajes</h2>
+        </div>
+        <div class="panel-body scroll" id="errInner">
+          <p class="empty">Sin analisis.</p>
+        </div>
+      </article>
+    </div>
+
+    <article class="panel" id="semantic">
+      <div class="panel-head">
+        <h2><span class="material-symbols-outlined">rule</span>Analisis semantico</h2>
+      </div>
+      <div class="panel-body scroll" id="semanticInner">
+        <p class="empty">Sin analisis semantico.</p>
+      </div>
+    </article>
+
+  </section>
+
+  <!-- Columna derecha -->
+  <aside class="column">
+
+    <article class="panel">
+      <div class="panel-head">
+        <h2><span class="material-symbols-outlined">account_tree</span>Arbol sintactico</h2>
+        <span class="badge muted">AST</span>
+      </div>
+      <div class="panel-body">
+        <div class="ast-viewport">
+          <svg id="astSVG" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-head">
+        <h2><span class="material-symbols-outlined">code</span>Traduccion a JavaScript</h2>
+        <div class="head-actions">
+          <button class="btn btn-icon" onclick="downloadTranslation()" title="Descargar .js" aria-label="Descargar">
+            <span class="material-symbols-outlined">download</span>
+          </button>
+          <button class="btn btn-icon" onclick="copyTranslation()" title="Copiar al portapapeles" aria-label="Copiar">
+            <span class="material-symbols-outlined">content_copy</span>
+          </button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="translation" class="code-block scroll">
+          <pre id="translationInner">Sin traduccion.</pre>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-head">
+        <h2><span class="material-symbols-outlined">terminal</span>Salida de ejecucion</h2>
+      </div>
+      <div class="panel-body">
+        <div id="runOutput" class="scroll"><p class="empty">Sin ejecucion.</p></div>
+      </div>
+    </article>
+
+  </aside>
+</main>
+
+<footer class="app-footer">
+  Version academica para la materia de Lenguajes y Automatas.
+</footer>
+
+</div><!-- /appContent -->
+
+<script src="js/lexer.js"></script>
+<script src="js/parser.js"></script>
+<script src="js/semantic.js"></script>
+<script src="js/translator.js"></script>
+<script src="js/ast-renderer.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
