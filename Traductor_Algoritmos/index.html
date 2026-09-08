@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Traductor de Algoritmos Educativos</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-theme="light">
+
+<!-- ======================== LOGIN SCREEN ======================== -->
+<div id="loginOverlay">
+  <!-- Animated background orbs -->
+  <div class="login-particles">
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+  </div>
+
+  <!-- Glass card -->
+  <div class="login-card" id="loginCard">
+    <div class="login-logo">
+      <div class="login-logo-icon">⚡</div>
+    </div>
+    <div class="login-title">Bienvenido</div>
+    <div class="login-subtitle">Inicia sesión para acceder al Traductor de Algoritmos</div>
+
+    <form id="loginForm" autocomplete="off">
+      <div class="login-field">
+        <input type="text" id="loginUser" placeholder="Usuario" autocomplete="off" required />
+        <span class="field-icon">👤</span>
+      </div>
+
+      <div class="login-field">
+        <input type="password" id="loginPass" placeholder="Contraseña" autocomplete="off" required />
+        <span class="field-icon">🔒</span>
+      </div>
+
+      <button type="submit" class="login-btn" id="loginBtn">Iniciar Sesión</button>
+    </form>
+
+    <div class="login-error" id="loginError">Usuario o contraseña incorrectos</div>
+
+    <div class="login-footer">
+      Traductor de Algoritmos Educativos
+    </div>
+  </div>
+</div>
+
+<!-- ======================== APP CONTENT ======================== -->
+<div id="appContent">
+
+<header>
+  <div>
+    <h1>Traductor de Algoritmos Educativos</h1>
+    <div class="subtitle">Analizador léxico → sintáctico → semántico → traductor → ejecución</div>
+  </div>
+
+  <div class="top-controls">
+    <label class="file-label" style="cursor:pointer;padding:6px 8px;border-radius:8px;background:#fff;border:1px dashed var(--primary);color:var(--primary);">
+      📁 Cargar
+      <input id="fileIn" type="file" accept=".alg,.txt" style="display:none" />
+    </label>
+
+    <button id="saveBtn" class="small">💾 Guardar</button>
+    <button id="resetBtn" class="small secondary">♻️ Limpiar</button>
+
+    <div class="toggle" id="themeToggle" title="Cambiar tema">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3v2M12 19v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="#0a4fa3" stroke-width="1.6" stroke-linecap="round"></path></svg>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT: Editor + Tokens + Output -->
+  <section class="panel">
+    <div style="display:flex; gap:12px; align-items:center; justify-content:space-between;">
+      <strong>Editor de Pseudocódigo</strong>
+      <div class="stat" id="stats">Líneas: 0</div>
+    </div>
+
+    <textarea id="inputCode" spellcheck="false" placeholder="Ejemplo:
+INICIO;
+LEER A, B;
+C = A + B;
+SI C > 10 ENTONCES
+  ESCRIBIR C;
+SINO
+  ESCRIBIR 0;
+FIN_SI;
+FIN;"></textarea>
+
+    <div class="buttons">
+      <button id="runBtn" onclick="runAll()">🔁 Analizar y Traducir</button>
+      <button id="lexBtn" onclick="analizarLexico()">🔍 Analizar Léxico</button>
+      <button id="astBtn" onclick="parseAndBuildAST()">🌳 Analizar Sintáctico (AST)</button>
+      <button id="semBtn" onclick="semanticCheck()">🧠 Análisis Semántico</button>
+      <button id="transBtn" onclick="translateToJS()">📝 Traducir a JavaScript</button>
+      <button id="execBtn" onclick="executeTranslated()" class="secondary">▶️ Ejecutar</button>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
+      <div id="tokenTable" class="panel" style="padding:8px;">
+        <strong>Tokens</strong>
+        <div id="tokensInner" style="margin-top:8px;"><em>Sin tokens</em></div>
+      </div>
+
+      <div id="errors" class="panel" style="padding:8px;">
+        <strong>Errores / Mensajes</strong>
+        <div id="errInner" style="margin-top:8px;"><em>Sin análisis.</em></div>
+      </div>
+    </div>
+
+    <div style="margin-top:10px;">
+      <div id="semantic" class="panel" style="padding:8px;">
+        <strong>Análisis semántico</strong>
+        <div id="semanticInner" style="margin-top:8px;"><em>Sin análisis semántico.</em></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- RIGHT: AST + Translation -->
+  <aside class="panel">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <strong>Árbol sintáctico (AST)</strong>
+      <div style="font-size:12px;color:var(--muted)">Visual interactiva</div>
+    </div>
+    <svg id="astSVG" xmlns="http://www.w3.org/2000/svg"></svg>
+
+    <div style="margin-top:10px;">
+      <strong>Traducción a JavaScript</strong>
+      <div id="translation" style="margin-top:6px; background:linear-gradient(180deg, rgba(247,251,255,0.9), rgba(243,249,255,0.9)); padding:8px; border-radius:6px;">
+        <pre id="translationInner"><em>Sin traducción.</em></pre>
+      </div>
+    </div>
+
+    <div style="margin-top:8px; display:flex; gap:8px;">
+      <button onclick="downloadTranslation()">⬇️ Descargar JS</button>
+      <button onclick="copyTranslation()">📋 Copiar</button>
+    </div>
+
+    <div style="margin-top:12px;">
+      <strong>Salida de ejecución</strong>
+      <div id="runOutput"><em>Sin ejecución.</em></div>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  Versión educativa — diseñado para demo y práctica de Lenguajes y Autómatas.
+</footer>
+
+</div><!-- /appContent -->
+
+<!-- Scripts modularizados -->
+<script src="js/lexer.js"></script>
+<script src="js/parser.js"></script>
+<script src="js/semantic.js"></script>
+<script src="js/translator.js"></script>
+<script src="js/ast-renderer.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
